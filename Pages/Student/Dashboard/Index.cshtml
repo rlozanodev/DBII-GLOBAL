@@ -1,37 +1,72 @@
 ﻿@page
-@model DBII_GLOBAL.Pages.Student.Dashboard.StudentDashboardModel
+@model DBII_GLOBAL.Pages.Student.StudentDashboardModel
 @{ 
     Layout = "_Layout"; 
     ViewData["Title"] = "Mi Panel"; 
 }
 
 <div class="container mt-5">
-    <div class="modern-card p-0 overflow-hidden">
-        <div class="card-accent-header">
-            <h3 class="mb-0">Bienvenido, @User.Identity?.Name</h3>
-        </div>
-        <div class="p-4">
-            <div class="d-flex align-items-center mb-4">
-                <div class="role-badge me-3">
-                    @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
-                </div>
-                <div class="text-muted small">
-                    Sesión iniciada correctamente
-                </div>
-            </div>
-            
-            <hr class="theme-divider" />
-            
-            <div class="info-section">
-                <h5 class="mb-3">Gestión de Papeletas</h5>
-                <p>Desde este panel puedes agendar tus préstamos de material. El estado de tus papeletas activas se sincroniza en tiempo real con <strong>Redis</strong>.</p>
-                
-                <div class="mt-4">
-                    <a asp-page="/Student/Dashboard/NuevaPapeleta" class="btn-primary-custom d-inline-block">
-                        Crear Nueva Papeleta
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="font-weight: 800;">Panel de Control</h2>
+        <a asp-page="/Student/NuevaPapeleta/Index" class="btn-primary-custom">
+            + Nueva Papeleta
+        </a>
     </div>
+
+    @if (Model.PapeletasActivas.Count == 0)
+    {
+        <div class="modern-card p-5 text-center">
+            <div class="display-1 mb-3">🍃</div>
+            <h4>No tienes papeletas activas hoy</h4>
+            <p class="text-muted">Tus solicitudes de material aparecerán aquí en cuanto las generes.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var p in Model.PapeletasActivas)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="modern-card p-0 overflow-hidden h-100 shadow-hover">
+                        <div class="card-accent-header d-flex justify-content-between align-items-center" 
+                            style="background-color: @(p.Estado == "Agendada" ? "#47c163" : "#2d8cf0")">
+                            <span class="fw-bold">@p.Asignatura</span>
+                            <span class="badge bg-light text-dark">ID: @p.IdPapeleta</span>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="text-center mb-3">
+                                <div class="fs-2">
+                                    @(p.Estado == "Agendada" ? "⏳" : p.Estado == "Recogida" ? "🧪" : "✅")
+                                </div>
+                                <h5 class="fw-bold mt-2" style="color: var(--text-color)">@p.Estado</h5>
+                            </div>
+
+                            <div class="material-summary p-2 rounded-3 mb-3" style="background-color: rgba(128,128,128,0.05)">
+                                <small class="form-label d-block mb-2">Materiales:</small>
+                                <ul class="list-unstyled mb-0" style="font-size: 0.85rem;">
+                                    @foreach (var material in p.Materiales)
+                                    {
+                                        <li class="text-truncate">
+                                            <i class="bi bi-dot text-success"></i> @material
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
+
+<style>
+    .shadow-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .shadow-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+    }
+</style>

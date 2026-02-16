@@ -1,0 +1,36 @@
+/* Reutilizable para cualquier tabla histórica */
+.modern-table-container {
+    background-color: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid rgba(128, 128, 128, 0.1);
+    overflow: hidden;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-color);
+}
+
+.custom-table thead th {
+    background-color: rgba(128, 128, 128, 0.05);
+    color: var(--text-muted);
+    padding: 18px;
+    text-align: left;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.custom-table tbody td {
+    padding: 16px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.05);
+}
+
+/* Badge de estado dinámico */
+.status-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}

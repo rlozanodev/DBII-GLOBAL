@@ -79,3 +79,6 @@
 .btn-primary-custom:active {
     transform: translateY(0);
 }
+.text-secondary-custom {
+    color: var(--text-muted);
+}

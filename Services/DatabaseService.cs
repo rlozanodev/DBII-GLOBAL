@@ -6,9 +6,9 @@ namespace DBII_GLOBAL.Services;
 
 public class DatabaseService
 {
-    // Propiedades públicas para acceder a los 3 motores
     public IMongoDatabase MongoDb { get; }
-    public IDatabase RedisDb { get; }
+    public IConnectionMultiplexer RedisConnection { get; }
+    public IDatabase RedisDb { get; } // <--- ESTA LÍNEA FALTABA
     public Cassandra.ISession CassandraSession { get; }
 
     public DatabaseService(IConfiguration config)
@@ -18,8 +18,9 @@ public class DatabaseService
         MongoDb = mongoClient.GetDatabase("lab_quimica_db");
 
         // 2. Conectar Redis
-        var redisConn = ConnectionMultiplexer.Connect(config.GetConnectionString("Redis")!);
-        RedisDb = redisConn.GetDatabase();
+        var redisConnString = config.GetConnectionString("Redis");
+        RedisConnection = ConnectionMultiplexer.Connect(redisConnString!);
+        RedisDb = RedisConnection.GetDatabase(); // Ahora el compilador ya sabe dónde guardarlo
 
         // 3. Conectar Cassandra
         var cassandraCluster = Cluster.Builder()

@@ -12,7 +12,7 @@ public class Inventario
     [BsonElement("nombre")]
     public string Nombre { get; set; } = string.Empty;
 
-    [BsonElement("tipo")]
+    [BsonElement("tipo")] // "Activo" o "Instrumento"
     public string Tipo { get; set; } = string.Empty;
 
     [BsonElement("stock_actual")]

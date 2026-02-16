@@ -17,8 +17,8 @@
                 <a class="nav-item-link" asp-page="/Index">Inicio</a>
                 @if (User.IsInRole("Alumno"))
                 {
-                    <a class="nav-item-link" asp-page="/Student/Dashboard/Index">Mi Panel</a>
-                    <a class="nav-item-link" asp-page="/Student/Dashboard/NuevaPapeleta">Nueva Papeleta</a>
+                    <a class="nav-item-link" asp-page="/Student/Historial/Index">Historial</a>
+                    <a class="nav-item-link" asp-page="/Student/NuevaPapeleta/Index">Nueva Papeleta</a>
                 }
                 @if (User.IsInRole("Almacén"))
                 {
