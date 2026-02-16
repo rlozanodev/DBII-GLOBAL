@@ -1,0 +1,18 @@
+﻿@page
+@model DBII_GLOBAL.Pages.Student.Dashboard.StudentDashboardModel
+@{
+    ViewData["Title"] = "Panel de Alumno";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3>Bienvenido, @User.Identity?.Name</h3>
+        </div>
+        <div class="card-body">
+            <h5>Tu Rol: <span class="badge bg-info">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></h5>
+            <hr />
+            <p>Desde aquí podrás crear tus papeletas de laboratorio conectando con <strong>Redis</strong>.</p>
+        </div>
+    </div>
+</div>
