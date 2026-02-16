@@ -1,0 +1,29 @@
+using DBII_GLOBAL.Services; // Asegúrate de agregar esto arriba
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorPages();
+
+// INYECTAR NUESTRO SERVICIO DE BASES DE DATOS COMO SINGLETON
+builder.Services.AddSingleton<DatabaseService>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapStaticAssets();
+app.MapRazorPages()
+   .WithStaticAssets();
+
+app.Run();
