@@ -1,18 +1,37 @@
 ﻿@page
 @model DBII_GLOBAL.Pages.Student.Dashboard.StudentDashboardModel
-@{
-    ViewData["Title"] = "Panel de Alumno";
+@{ 
+    Layout = "_Layout"; 
+    ViewData["Title"] = "Mi Panel"; 
 }
 
-<div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h3>Bienvenido, @User.Identity?.Name</h3>
+<div class="container mt-5">
+    <div class="modern-card p-0 overflow-hidden">
+        <div class="card-accent-header">
+            <h3 class="mb-0">Bienvenido, @User.Identity?.Name</h3>
         </div>
-        <div class="card-body">
-            <h5>Tu Rol: <span class="badge bg-info">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></h5>
-            <hr />
-            <p>Desde aquí podrás crear tus papeletas de laboratorio conectando con <strong>Redis</strong>.</p>
+        <div class="p-4">
+            <div class="d-flex align-items-center mb-4">
+                <div class="role-badge me-3">
+                    @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                </div>
+                <div class="text-muted small">
+                    Sesión iniciada correctamente
+                </div>
+            </div>
+            
+            <hr class="theme-divider" />
+            
+            <div class="info-section">
+                <h5 class="mb-3">Gestión de Papeletas</h5>
+                <p>Desde este panel puedes agendar tus préstamos de material. El estado de tus papeletas activas se sincroniza en tiempo real con <strong>Redis</strong>.</p>
+                
+                <div class="mt-4">
+                    <a asp-page="/Student/Dashboard/NuevaPapeleta" class="btn-primary-custom d-inline-block">
+                        Crear Nueva Papeleta
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

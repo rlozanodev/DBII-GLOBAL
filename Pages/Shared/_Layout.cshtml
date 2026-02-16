@@ -1,51 +1,108 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - DBII_GLOBAL</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Lab Químico</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">DBII_GLOBAL</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <header class="navbar-container">
+    <nav class="modern-navbar">
+        <div class="nav-links">
+            @if (User.Identity!.IsAuthenticated)
+            {
+                <a class="nav-item-link" asp-page="/Index">Inicio</a>
+                @if (User.IsInRole("Alumno"))
+                {
+                    <a class="nav-item-link" asp-page="/Student/Dashboard/Index">Mi Panel</a>
+                    <a class="nav-item-link" asp-page="/Student/Dashboard/NuevaPapeleta">Nueva Papeleta</a>
+                }
+                @if (User.IsInRole("Almacén"))
+                {
+                    <a class="nav-item-link" asp-page="/Personal/Dashboard/Index">Monitor Redis</a>
+                    <a class="nav-item-link" asp-page="/Personal/Dashboard/Inventario">Inventario Mongo</a>
+                }
+                @if (User.IsInRole("Profesor"))
+                {
+                    <a class="nav-item-link" asp-page="/Teaching/Dashboard/Index">Clases</a>
+                }
+                @if (User.IsInRole("Administrador"))
+                {
+                    <a class="nav-item-link admin-link" asp-page="/Administrator/Reports/Index">Ojo de Dios</a>
+                }
+            }
+        </div>
+
+        <div class="nav-logo">
+            <a asp-page="/Index" class="logo-text">
+                <span class="icon">🧪</span> Lab<span class="bold">Química</span>
+            </a>
+        </div>
+
+        <div class="nav-actions">
+            <button onclick="toggleTheme()" class="theme-switch" id="theme-btn">
+                <span id="theme-icon">🌙</span>
+            </button>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="user-profile">
+                    <span class="user-name">@User.Identity.Name</span>
+                    <span class="user-role">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
                 </div>
-            </div>
-        </nav>
-    </header>
+                <a class="btn-logout" asp-page="/Login/Logout">
+                    Cerrar Sesión 
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </a>
+            }
+            else
+            {
+                <!--<a class="btn-login" asp-page="/Login/Login">Sign in</a>
+                <a class="btn-demo" href="#">Explorar ➔</a>-->
+            }
+        </div>
+    </nav>
+</header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - DBII_GLOBAL - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="main-footer">
+        <div class="container text-center">
+            &copy; 2026 - Centro de Enseñanza Técnica Industrial - Persistencia Políglota (Mongo, Redis, Cassandra)
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute("data-theme");
+            const newTheme = currentTheme === "dark" ? "light" : "dark";
+            
+            html.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme);
+            updateIcon(newTheme);
+        }
 
+        function updateIcon(theme) {
+            document.getElementById("theme-icon").innerText = theme === "dark" ? "☀️" : "🌙";
+        }
+
+        // Cargar preferencia al iniciar
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+            updateIcon(savedTheme);
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

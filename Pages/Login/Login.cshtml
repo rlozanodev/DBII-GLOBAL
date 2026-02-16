@@ -1,30 +1,35 @@
 @page
 @model LoginModel
-@{ Layout = "_Layout"; }
+@{ Layout = "_Layout"; ViewData["Title"] = "Iniciar Sesión"; }
+@section Styles { <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" /> }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4 card shadow-sm p-4">
-        <h2 class="text-center mb-4">🧪 Lab Químico</h2>
-        <form method="post">
-            <div class="mb-3">
-                <label>Registro (ID)</label>
-                <input asp-for="Registro" class="form-control" placeholder="Ej. 2021001" required />
+<div class="login-container">
+    <div class="modern-card">
+        <div class="card-content">
+            <div class="text-center mb-4">
+                <h3 style="font-weight: 800; letter-spacing: -1px;">Bienvenido</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Ingresa tus datos para continuar</p>
             </div>
-            <div class="mb-3">
-                <label>Contraseña</label>
-                <input asp-for="Password" type="password" class="form-control" required />
-            </div>
-            @if (!string.IsNullOrEmpty(Model.Mensaje)) {
-                <div class="alert alert-danger p-2">@Model.Mensaje</div>
-            }
-            <button type="submit" class="btn btn-primary w-100">Entrar</button>
-        </form>
+
+            <form method="post">
+                <div class="form-group mb-4">
+                    <label class="form-label">Registro Académico</label>
+                    <input asp-for="Registro" class="custom-input" placeholder="Ej. 2021001" required autocomplete="off" />
+                </div>
+                
+                <div class="form-group mb-4">
+                    <label class="form-label">Contraseña</label>
+                    <input asp-for="Password" type="password" class="custom-input" placeholder="••••••••" required />
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Mensaje)) {
+                    <div class="alert alert-danger py-2 px-3 mb-3" style="font-size: 0.85rem; border-radius: 10px;">
+                        @Model.Mensaje
+                    </div>
+                }
+
+                <button type="submit" class="btn-primary-custom w-100">Entrar al Laboratorio</button>
+            </form>
+        </div>
     </div>
 </div>
-@if (!string.IsNullOrEmpty(Model.DebugInfo))
-{
-    <div class="alert alert-warning mt-3" style="font-size: 0.8rem;">
-        <strong>Detalle Técnico (Debug):</strong>
-        <pre>@Model.DebugInfo</pre>
-    </div>
-}
