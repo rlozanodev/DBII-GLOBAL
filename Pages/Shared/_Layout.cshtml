@@ -22,16 +22,17 @@
                 }
                 @if (User.IsInRole("Almacén"))
                 {
-                    <a class="nav-item-link" asp-page="/Personal/Dashboard/Index">Monitor Redis</a>
-                    <a class="nav-item-link" asp-page="/Personal/Dashboard/Inventario">Inventario Mongo</a>
+                    <a class="nav-item-link" asp-page="/Personal/Inventario/Index">Inventario</a>
                 }
                 @if (User.IsInRole("Profesor"))
                 {
-                    <a class="nav-item-link" asp-page="/Teaching/Dashboard/Index">Clases</a>
+                    <!--<a class="nav-item-link" asp-page="/Teaching/Dashboard/Index">Clases</a>-->
                 }
                 @if (User.IsInRole("Administrador"))
                 {
-                    <a class="nav-item-link admin-link" asp-page="/Administrator/Reports/Index">Ojo de Dios</a>
+                    <a class="nav-item-link" asp-page="/Administrator/Inventory/Index">Inventario</a>
+                    <a class="nav-item-link" asp-page="/Administrator/Users/Index">Usuarios</a>
+                    <a class="nav-item-link" asp-page="/Administrator/History/Index">Histórico</a>
                 }
             }
         </div>

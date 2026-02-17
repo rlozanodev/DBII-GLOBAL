@@ -1,7 +1,67 @@
 ﻿@page
-@model DBII_GLOBAL.Pages.Administrator.Reports.AdminReportsModel
+@model DBII_GLOBAL.Pages.Administrator.AdminDashboardModel
 @{
-    ViewData["Title"] = "Reportes Históricos";
+    Layout = "_Layout";
+    ViewData["Title"] = "Panel Administrativo";
 }
-<h1>Ojo de Dios: Histórico de Papeletas</h1>
-<p>Esta vista consultará exclusivamente Apache Cassandra.</p>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="font-weight: 800;">Ojo de Dios: Reporte Global</h2>
+        <span class="badge role-badge">Modo Administrador</span>
+    </div>
+
+    @* --- Fila de Indicadores (KPIs) --- *@
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="modern-card p-4 text-center border-start border-primary border-4">
+                <small class="text-muted d-block text-uppercase fw-bold">Papeletas Hoy (Redis)</small>
+                <h1 class="display-4 fw-bold">@Model.PapeletasActivasRedis</h1>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="modern-card p-4 text-center border-start border-success border-4">
+                <small class="text-muted d-block text-uppercase fw-bold">Total Histórico (Cassandra)</small>
+                <h1 class="display-4 fw-bold">@Model.TotalHistoricoCassandra</h1>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="modern-card p-4 text-center border-start border-warning border-4">
+                <small class="text-muted d-block text-uppercase fw-bold">Items Catálogo (Mongo)</small>
+                <h1 class="display-4 fw-bold">@Model.TotalMateriales</h1>
+            </div>
+        </div>
+    </div>
+
+    @* --- Alertas de Inventario --- *@
+    <div class="modern-card p-0 overflow-hidden">
+        <div class="card-accent-header bg-danger">
+            <h5 class="mb-0 text-white">⚠️ Alertas de Inventario Crítico (MongoDB)</h5>
+        </div>
+        <div class="p-4">
+            <table class="table table-hover custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Material</th>
+                        <th>Tipo</th>
+                        <th>Stock</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.MaterialesCriticos)
+                    {
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td><span class="badge bg-secondary">@item.Tipo</span></td>
+                            <td class="text-danger fw-bold">@item.StockActual</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill">Reabastecer</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

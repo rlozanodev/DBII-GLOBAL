@@ -1,8 +1,8 @@
 ﻿@page
-@model DBII_GLOBAL.Pages.Teaching.TeachingDashboardModel
+@model DBII_GLOBAL.Pages.Administrator.GlobalHistoryModel
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Panel de Docente";
+    ViewData["Title"] = "Auditoría Histórica";
 }
 
 @section Styles {
@@ -12,50 +12,52 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 style="font-weight: 800;">Supervisión de Prácticas</h2>
-            <p class="text-muted small">Reporte histórico de alumnos y materiales (Cassandra)</p>
+            <h2 style="font-weight: 800;">Auditoría de Registros</h2>
+            <p class="text-muted small">Visualización completa de la persistencia en Cassandra</p>
         </div>
-        <span class="badge role-badge">Académico</span>
+        <span class="badge bg-danger p-2 px-3 rounded-pill">Acceso Total</span>
     </div>
 
     <div class="modern-table-container">
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>Alumno</th>
+                    <th>Folio</th>
+                    <th>Alumno (Registro)</th>
                     <th>Asignatura</th>
-                    <th>Materiales Utilizados</th>
+                    <th>Materiales</th>
                     <th>Fecha</th>
                     <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
-                @if (Model.PapeletasAlumnos.Count == 0)
+                @if (Model.TodosLosRegistros.Count == 0)
                 {
                     <tr>
-                        <td colspan="5" class="text-center p-5 text-muted">
-                            No se registran papeletas finalizadas bajo su supervisión.
+                        <td colspan="6" class="text-center p-5 text-muted">
+                            No existen registros históricos en el clúster de Cassandra.
                         </td>
                     </tr>
                 }
-                @foreach (var p in Model.PapeletasAlumnos)
+                @foreach (var p in Model.TodosLosRegistros)
                 {
                     <tr>
+                        <td class="fw-bold">#@p.IdPapeleta</td>
                         <td>
-                            <div class="fw-bold">@p.NombreAlumno</div>
-                            <small class="text-muted">Registro: @p.RegistroAlumno</small>
+                            <div>@p.NombreAlumno</div>
+                            <small class="text-muted">@p.RegistroAlumno</small>
                         </td>
                         <td>@p.Asignatura</td>
                         <td>
                             <ul class="list-unstyled mb-0 small">
                                 @foreach(var mat in p.MaterialesList) {
-                                    <li><i class="bi bi-flask me-1 text-primary"></i> @mat</li>
+                                    <li><i class="bi bi-check2-circle text-success me-1"></i> @mat</li>
                                 }
                             </ul>
                         </td>
                         <td>@p.Fecha</td>
                         <td>
-                            <span class="status-pill bg-success text-white">@p.EstadoFinal</span>
+                            <span class="status-pill bg-dark text-white">@p.EstadoFinal</span>
                         </td>
                     </tr>
                 }

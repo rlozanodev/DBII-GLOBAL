@@ -4,40 +4,226 @@
     Layout = "_Layout";
     ViewData["Title"] = "Nueva Papeleta";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/historial.css" asp-append-version="true" />
+}
 
 <div class="container mt-5">
-    <div class="modern-card p-4">
-        <h3 class="mb-4">📋 Generar Nueva Papeleta</h3>
+    <div class="modern-card p-0 overflow-hidden">
+        <div class="card-accent-header">
+            <h3 class="mb-0">📋 Generar Nueva Papeleta</h3>
+        </div>
         
-        <form method="post">
-            <div class="mb-4">
-                <label class="form-label">Selecciona la Asignatura</label>
-                <select asp-for="Asignatura" class="custom-input" required>
-                    <option value="">-- Selecciona --</option>
-                    <option value="Química Orgánica">Química Orgánica</option>
-                    <option value="Analítica">Analítica</option>
-                </select>
-            </div>
+        <div class="p-4">
+            @if (!ModelState.IsValid)
+            {
+                <div class="alert alert-danger" asp-validation-summary="All"></div>
+            }
 
-            <div class="mb-4">
-                <label class="form-label">Materiales Disponibles (MongoDB)</label>
-                <div class="material-list border rounded p-3" style="max-height: 250px; overflow-y: auto;">
-                    @foreach (var item in Model.MaterialesDisponibles)
-                    {
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="MaterialesSeleccionados" value="@item.Nombre" id="item-@item.Id">
-                            <label class="form-check-label" for="item-@item.Id">
-                                @item.Nombre <span class="badge bg-secondary ms-2">@item.Tipo</span>
-                            </label>
-                        </div>
-                    }
+            <form method="post" id="formPapeleta">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Selecciona la Asignatura</label>
+                        <select asp-for="Asignatura" class="custom-input" required>
+                            <option value="">-- Selecciona --</option>
+                            <option value="Química Orgánica">Química Orgánica</option>
+                            <option value="Analítica">Analítica</option>
+                            <option value="Microbiología">Microbiología</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mt-3 mt-md-0">
+                        <label class="form-label fw-bold">Profesor Supervisor</label>
+                        <select asp-for="Profesor" class="custom-input" required>
+                            <option value="">-- Selecciona un Profesor --</option>
+                            @foreach(var prof in Model.Profesores)
+                            {
+                                <option value="@prof.Nombre">@prof.Nombre</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn-primary-custom w-100">Agendar Préstamo</button>
-                <a asp-page="/Student/Dashboard/Index" class="btn btn-outline-secondary rounded-3">Cancelar</a>
-            </div>
-        </form>
+                <hr class="theme-divider my-4" />
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Materiales a Solicitar</h5>
+                    <button type="button" class="btn btn-sm btn-primary-custom" data-bs-toggle="modal" data-bs-target="#modalMaterial">
+                        + Añadir Material
+                    </button>
+                </div>
+
+                <input type="hidden" asp-for="MaterialesJsonSubmit" id="MaterialesJsonSubmit" required />
+
+                <div id="emptyState" class="text-center p-5 rounded-3 mb-4" style="background-color: rgba(128,128,128,0.05); border: 2px dashed rgba(128,128,128,0.2);">
+                    <div class="display-6 mb-3 opacity-50">🛒</div>
+                    <p class="text-muted mb-0 fw-bold">No has agregado materiales.</p>
+                    <small class="text-muted">Haz clic en "+ Añadir Material" para comenzar.</small>
+                </div>
+
+                <div id="tablaContainer" class="table-responsive mb-4" style="display: none;">
+                    <table class="custom-table w-100">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Material</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Quitar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaMateriales">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-2" onclick="return validarFormulario()">Agendar Préstamo</button>
+                    <a asp-page="/Student/Dashboard/Index" class="btn btn-outline-secondary py-2 px-4 rounded-3">Cancelar</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalMaterial" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-card border-0">
+            <div class="modal-header border-0 p-4">
+                <h5 class="modal-title fw-bold">Seleccionar de Inventario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-0">
+                <div class="mb-3">
+                    <label class="form-label">Material Disponible</label>
+                    <select id="selectMaterialModal" class="custom-input" onchange="actualizarMaximo()">
+                        <option value="">-- Selecciona --</option>
+                        @foreach(var item in Model.MaterialesDisponibles)
+                        {
+                            <option value="@item.Id" data-nombre="@item.Nombre" data-stock="@item.StockActual">
+                                @item.Nombre (Stock: @item.StockActual)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Cantidad Requerida</label>
+                    <input type="number" id="cantidadModal" class="custom-input" min="1" value="1" />
+                    <small id="stockHelp" class="text-muted d-block mt-1"></small>
+                </div>
+                <button type="button" class="btn-primary-custom w-100" onclick="agregarAlCarrito()">
+                    Agregar a la Lista
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let carrito = [];
+
+        function actualizarMaximo() {
+            const select = document.getElementById('selectMaterialModal');
+            if (select.value === "") {
+                document.getElementById('cantidadModal').value = 1;
+                document.getElementById('stockHelp').innerText = "";
+                return;
+            }
+            const option = select.options[select.selectedIndex];
+            const stock = parseInt(option.getAttribute('data-stock'));
+            
+            const inputCantidad = document.getElementById('cantidadModal');
+            inputCantidad.max = stock;
+            inputCantidad.value = 1;
+            document.getElementById('stockHelp').innerText = "Máximo disponible: " + stock;
+        }
+
+        function agregarAlCarrito() {
+            const select = document.getElementById('selectMaterialModal');
+            if (select.value === '') {
+                alert('Por favor, selecciona un material.');
+                return;
+            }
+
+            const option = select.options[select.selectedIndex];
+            const id = select.value;
+            const nombre = option.getAttribute('data-nombre');
+            const maxStock = parseInt(option.getAttribute('data-stock'));
+            const cantidad = parseInt(document.getElementById('cantidadModal').value);
+
+            if (isNaN(cantidad) || cantidad < 1) {
+                alert('Ingresa una cantidad válida mayor a 0.');
+                return;
+            }
+
+            const existente = carrito.find(m => m.Id === id);
+            if (existente) {
+                if (existente.Cantidad + cantidad > maxStock) {
+                    alert('Superas el stock disponible sumando lo que ya tienes en la lista.');
+                    return;
+                }
+                existente.Cantidad += cantidad;
+            } else {
+                if (cantidad > maxStock) {
+                    alert('La cantidad supera el stock disponible.');
+                    return;
+                }
+                carrito.push({ Id: id, Nombre: nombre, Cantidad: cantidad });
+            }
+
+            actualizarTabla();
+
+            // Cerrar modal
+            const modalEl = document.getElementById('modalMaterial');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            // Reset
+            select.value = '';
+            document.getElementById('cantidadModal').value = 1;
+            document.getElementById('stockHelp').innerText = "";
+        }
+
+        function eliminarMaterial(id) {
+            carrito = carrito.filter(m => m.Id !== id);
+            actualizarTabla();
+        }
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('tablaMateriales');
+            tbody.innerHTML = '';
+
+            carrito.forEach(m => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid rgba(128,128,128,0.1);">
+                        <td class="align-middle fw-bold" style="background-color: transparent; color: var(--text-color); padding: 15px 10px;">
+                            ${m.Nombre}
+                        </td>
+                        <td class="align-middle text-center" style="background-color: transparent; padding: 15px 10px;">
+                            <span class="badge shadow-sm" style="background-color: var(--card-bg); color: var(--text-color); border: 1px solid rgba(128,128,128,0.2); font-size: 0.9rem; padding: 8px 12px;">
+                                ${m.Cantidad}
+                            </span>
+                        </td>
+                        <td class="align-middle" style="background-color: transparent; padding: 15px 10px;">
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn-action-delete" onclick="eliminarMaterial('${m.Id}')" title="Quitar ${m.Nombre}">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('MaterialesJsonSubmit').value = JSON.stringify(carrito);
+            document.getElementById('emptyState').style.display = carrito.length === 0 ? 'block' : 'none';
+            document.getElementById('tablaContainer').style.display = carrito.length === 0 ? 'none' : 'block';
+        }
+
+        function validarFormulario() {
+            if (carrito.length === 0) {
+                alert('Debes agregar al menos un material a tu papeleta antes de agendar.');
+                return false;
+            }
+            return true;
+        }
+    </script>
+}

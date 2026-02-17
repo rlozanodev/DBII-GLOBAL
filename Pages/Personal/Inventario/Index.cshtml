@@ -1,0 +1,36 @@
+﻿@page
+@model DBII_GLOBAL.Pages.Personal.InventarioAlmacenModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Monitor de Almacén";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/historial.css" asp-append-version="true" />
+}
+<div class="container mt-5">
+    <h2 class="fw-bold mb-4">Consulta de Existencias</h2>
+    <div class="modern-table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Categoría</th>
+                    <th>Stock Actual</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.Nombre</td>
+                        <td><span class="status-pill bg-secondary text-white">@item.Tipo</span></td>
+                        <td class="fw-bold @(item.StockActual < 5 ? "text-danger" : "")">
+                            @item.StockActual unidades
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -9,4 +9,12 @@ public class Papeleta
     public string Fecha { get; set; } = string.Empty;
     public string Estado { get; set; } = string.Empty;
     public List<string> Materiales { get; set; } = new();
+    public string Profesor { get; set; } = string.Empty;
+    
+}
+public class MaterialPedido
+{
+    public string Id { get; set; } = string.Empty;
+    public string Nombre { get; set; } = string.Empty;
+    public int Cantidad { get; set; }
 }

@@ -1,4 +1,69 @@
 ﻿@page
-@model DBII_GLOBAL.Pages.Personal.Dashboard.PersonalDashboardModel
+@model DBII_GLOBAL.Pages.Personal.AlmacenDashboardModel
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "Monitor de Almacén";
 }
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/historial.css" asp-append-version="true" />
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="font-weight: 800;">Monitor de Entrega</h2>
+            <p class="text-muted small">Flujo de materiales en tiempo real (Redis)</p>
+        </div>
+        <span class="badge role-badge">Sincronizado</span>
+    </div>
+
+    <div class="row g-4">
+        @if (Model.PapeletasPendientes.Count == 0)
+        {
+            <div class="col-12 text-center p-5 modern-card">
+                <h4 class="text-muted">No hay solicitudes pendientes por ahora.</h4>
+            </div>
+        }
+
+        @foreach (var p in Model.PapeletasPendientes)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="modern-card p-0 overflow-hidden border-top border-4 @(p.Estado == "Agendada" ? "border-warning" : "border-success")">
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">@p.NombreAlumno</span>
+                            <small class="text-muted">ID: @p.IdPapeleta</small>
+                        </div>
+                        <h6 class="text-primary">@p.Asignatura</h6>
+                        <hr class="theme-divider" />
+                        
+                        <div class="mb-3">
+                            <small class="form-label d-block">Materiales a entregar:</small>
+                            <ul class="list-unstyled small">
+                                @foreach(var m in p.Materiales) {
+                                    <li><i class="bi bi-box-seam me-2"></i>@m</li>
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            @if (p.Estado == "Agendada")
+                            {
+                                <form asp-page-handler="Entregar" asp-route-id="@p.IdPapeleta" asp-route-fecha="@p.Fecha" method="post">
+                                    <button class="btn btn-warning w-100 fw-bold">MARCAR RECOGIDA</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-page-handler="Finalizar" asp-route-id="@p.IdPapeleta" asp-route-fecha="@p.Fecha" method="post">
+                                    <button class="btn btn-success w-100 fw-bold">FINALIZAR Y ARCHIVAR</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

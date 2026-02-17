@@ -1,0 +1,145 @@
+@page
+@model DBII_GLOBAL.Pages.Administrator.InventoryManagementModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Gestión de Inventario";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/historial.css" asp-append-version="true" />
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="font-weight: 800;">Catálogo de Laboratorio</h2>
+            <p class="text-muted small">Gestión de reactivos e instrumentos en MongoDB</p>
+        </div>
+        <button type="button" class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#modalNuevoItem">
+            + Agregar Material
+        </button>
+    </div>
+
+    <div class="modern-table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Nombre del Material</th>
+                    <th>Categoría</th>
+                    <th>Existencias</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Catalogo)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold">@item.Nombre</div>
+                            <small class="text-muted">ID: @item.Id</small>
+                        </td>
+                        <td>
+                            <span class="status-pill @(item.Tipo == "Activo" ? "bg-info text-white" : "bg-secondary text-white")">
+                                @item.Tipo
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-bold @(item.StockActual < 5 ? "text-danger" : "")">
+                                @item.StockActual unidades
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn-action-edit" 
+                                        onclick="prepararEdicion('@item.Id', '@item.Nombre', '@item.Tipo', '@item.StockActual')"
+                                        data-bs-toggle="modal" data-bs-target="#modalEditarItem">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+
+                                <form asp-page-handler="Delete" asp-route-id="@item.Id" method="post" 
+                                    onsubmit="return confirm('¿Estás seguro de eliminar @item.Nombre?');">
+                                    <button type="submit" class="btn-action-delete">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-card border-0">
+            <div class="modal-header border-0 p-4">
+                <h5 class="modal-title fw-bold">Nuevo Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-0">
+                <form asp-page-handler="Add" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input asp-for="NuevoItem.Nombre" class="custom-input" placeholder="Ej. Ácido Sulfúrico" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Material</label>
+                        <select asp-for="NuevoItem.Tipo" class="custom-input" required>
+                            <option value="Activo">Activo (Reactivo)</option>
+                            <option value="Instrumento">Instrumento / Cristalería</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock Inicial</label>
+                        <input asp-for="NuevoItem.StockActual" type="number" class="custom-input" required />
+                    </div>
+                    <button type="submit" class="btn-primary-custom w-100 mt-3">Guardar en MongoDB</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalEditarItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-card border-0">
+            <div class="modal-header border-0 p-4">
+                <h5 class="modal-title fw-bold">Editar Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-0">
+                <form asp-page-handler="Update" method="post">
+                    <input type="hidden" id="editId" asp-for="NuevoItem.Id" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input asp-for="NuevoItem.Nombre" id="editNombre" class="custom-input" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Material</label>
+                        <select asp-for="NuevoItem.Tipo" id="editTipo" class="custom-input" required>
+                            <option value="Activo">Activo (Reactivo)</option>
+                            <option value="Instrumento">Instrumento / Cristalería</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock Actual</label>
+                        <input asp-for="NuevoItem.StockActual" id="editStock" type="number" class="custom-input" required />
+                    </div>
+                    <button type="submit" class="btn-primary-custom w-100 mt-3">Actualizar en MongoDB</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function prepararEdicion(id, nombre, tipo, stock) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editTipo').value = tipo;
+            document.getElementById('editStock').value = stock;
+        }
+    </script>
+}
