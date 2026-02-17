@@ -1,0 +1,125 @@
+# Documentación del Desarrollo: Aplicación de Laboratorio de Química
+
+Este documento detalla los pasos seguidos para desarrollar la aplicación web de gestión de laboratorios, utilizando una arquitectura de persistencia políglota (.NET, MongoDB, Redis, Cassandra).
+
+## Fase 1: Configuración del Entorno de Desarrollo (macOS)
+
+### Paso 1.1: Instalar Herramientas de Línea de Comandos
+Se utilizó Homebrew, el gestor de paquetes para macOS, para instalar todas las dependencias.
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### Paso 1.2: Instalar el SDK de .NET
+La aplicación está construida sobre .NET. Se instaló la versión más reciente del SDK.
+```bash
+brew install dotnet
+```
+
+### Paso 1.3: Instalar y Configurar las Bases de Datos
+La aplicación utiliza tres bases de datos, cada una con un propósito específico.
+
+**1. MongoDB (Base de Datos Principal de Documentos):**
+Se instaló usando Homebrew y se inició como un servicio.
+```bash
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb-community
+```
+- **Propósito:** Almacenar los datos principales de la aplicación como usuarios, inventario y papeletas activas. Su flexibilidad con esquemas es ideal para este tipo de datos.
+
+**2. Redis (Caché en Memoria):**
+Se instaló usando Homebrew y se inició como un servicio.
+```bash
+brew install redis
+brew services start redis
+```
+- **Propósito:** Gestionar sesiones de usuario, almacenar en caché datos consultados frecuentemente para acelerar la respuesta de la aplicación.
+
+**3. Apache Cassandra (Base de Datos de Historial):**
+Debido a su complejidad, se optó por Docker para una instalación limpia y contenida.
+```bash
+# Asumiendo que Docker Desktop para Mac está instalado
+docker run --name cassandra -p 9042:9042 -d cassandra:latest
+```
+- **Propósito:** Almacenar un registro histórico de todas las papeletas procesadas. Cassandra es ideal para grandes volúmenes de datos de escritura y escalabilidad.
+
+## Fase 2: Creación y Configuración del Proyecto
+
+### Paso 2.1: Inicializar el Proyecto .NET Razor Pages
+Se creó la estructura base de la aplicación web.
+```bash
+dotnet new webapp -n DBII-GLOBAL
+```
+
+### Paso 2.2: Instalar Paquetes de Base de Datos (NuGet)
+Se añadieron los controladores necesarios para que C# se comunique con cada base de datos.
+```bash
+dotnet add package MongoDB.Driver
+dotnet add package StackExchange.Redis
+dotnet add package CassandraCSharpDriver
+```
+
+### Paso 2.3: Configurar las Conexiones
+En el archivo `appsettings.json`, se añadieron las cadenas de conexión para cada base de datos, apuntando a las instancias locales.
+
+```json
+"ConnectionStrings": {
+  "MongoDb": "mongodb://localhost:27017",
+  "Redis": "localhost:6379",
+  "Cassandra": "127.0.0.1"
+}
+```
+
+### Paso 2.4: Crear el Servicio Central de Datos
+Se desarrolló `Services/DatabaseService.cs`. Este servicio centraliza la lógica de conexión a las tres bases de datos y se inyecta en las páginas que lo necesitan, simplificando el acceso a los datos. Se registra en `Program.cs` como un servicio Singleton para mantener una única conexión.
+
+## Fase 3: Definición de los Modelos de Datos
+
+### Paso 3.1: Crear los Modelos C#
+Se crearon clases en la carpeta `Models/` que representan las entidades de la aplicación.
+- **Usuario.cs, Inventario.cs:** Mapeados a colecciones de MongoDB usando atributos `[BsonElement]`.
+- **Papeleta.cs:** Un objeto simple (POCO) que se serializa en una colección de MongoDB.
+- **HistorialPapeleta.cs:** Diseñado para Cassandra, con campos planos. Los datos complejos como la lista de materiales se serializan a una cadena JSON.
+
+### Paso 3.2: Inicializar Esquemas de Base de Datos
+- **MongoDB:** Usando una herramienta como MongoDB Compass, se conectó a la instancia local y se creó la base de datos `lab_quimica_db`. Las colecciones (`usuarios`, `inventario`, `papeletas`) son creadas por la aplicación en su primer uso.
+- **Cassandra:** Usando `cqlsh` a través de Docker, se creó el "keyspace" y la tabla para el historial.
+  ```bash
+  # Conectarse a cqlsh
+  docker exec -it cassandra cqlsh
+
+  # Crear Keyspace y Tabla
+  CREATE KEYSPACE IF NOT EXISTS lab_keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
+  USE lab_keyspace;
+  CREATE TABLE historialpapeleta (
+      idpapeleta text PRIMARY KEY,
+      registroalumno text,
+      nombrealumno text,
+      asignatura text,
+      fecha text,
+      estadofinal text,
+      profesor text,
+      materialesjson text
+  );
+  ```
+
+## Fase 4: Desarrollo de la Lógica de la Aplicación y Vistas
+
+El desarrollo se estructuró por roles de usuario (Administrator, Student, etc.), creando una carpeta para cada uno dentro de `Pages/`.
+
+### Paso 4.1: Autenticación y Layout
+- Se creó la página de `Login/Login.cshtml`. Su lógica en `Login.cshtml.cs` consulta la colección `usuarios` en MongoDB a través del `DatabaseService`. Si el usuario es válido, se guarda la información de sesión (probablemente en Redis) y se redirige al usuario a su dashboard.
+- Se configuró el `Shared/_Layout.cshtml` para mostrar diferentes opciones de navegación según el rol del usuario almacenado en la sesión.
+
+### Paso 4.2: Funcionalidad del Estudiante
+- **Nueva Papeleta (`Student/NuevaPapeleta`):** Se diseñó un formulario para que los estudiantes soliciten materiales. Al enviar, la lógica en `Index.cshtml.cs` crea un nuevo documento en la colección `papeletas` de MongoDB.
+- **Historial (`Student/Historial`):** Esta página consulta la tabla `historialpapeleta` en Cassandra para mostrar el estado de las papeletas pasadas del estudiante.
+
+### Paso 4.3: Funcionalidades del Administrador
+- Se crearon páginas en `Pages/Administrator/` para gestionar usuarios, inventario e historial.
+- Cada página realiza operaciones CRUD (Crear, Leer, Actualizar, Borrar) contra la base de datos correspondiente (principalmente MongoDB para usuarios e inventario) utilizando el `DatabaseService`.
+
+### Paso 4.4: Estilos y Frontend
+Se utilizaron los archivos en `wwwroot/` para definir los estilos CSS y cualquier comportamiento de JavaScript del lado del cliente, asegurando una experiencia de usuario consistente.
+```

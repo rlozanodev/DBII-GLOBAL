@@ -1,0 +1,35 @@
+# Componentes Clave y Funcionalidades Imprescindibles
+
+Este documento resume las partes más importantes del sistema, tanto a nivel de código como de arquitectura.
+
+### 1. Arquitectura de Persistencia Políglota
+Esta es la decisión arquitectónica más importante y definitoria de la aplicación. En lugar de usar una única base de datos para todo, se utiliza una estrategia de "la mejor herramienta para cada trabajo":
+
+- **MongoDB (Base de Datos Primaria):** Almacena los datos operativos y de estado actual (Usuarios, Inventario, Papeletas activas). Su naturaleza de base de datos de documentos es perfecta para manejar la estructura flexible y anidada de esta información. Es el corazón de los datos "vivos" de la aplicación.
+  
+- **Cassandra (Base de Datos de Historial):** Almacena el registro inmutable de todas las papeletas finalizadas. Es una base de datos optimizada para escrituras masivas y escalabilidad horizontal, lo que la hace ideal para guardar logs, auditorías y registros históricos que crecerán indefinidamente.
+  
+- **Redis (Caché y Sesiones):** Actúa como una capa de alta velocidad. Su función es almacenar datos de acceso frecuente (como resultados de consultas o información del perfil de usuario) en memoria para reducir la carga sobre las bases de datos principales y acelerar la respuesta al usuario. También es ideal para gestionar el estado de las sesiones de login.
+
+### 2. `Services/DatabaseService.cs` (El Núcleo de la Conectividad)
+Esta clase es el componente más crítico a nivel de código. Funciona como un "concentrador" que gestiona y centraliza las conexiones a las tres bases de datos. Cualquier parte de la aplicación (una página, un servicio) que necesite acceder a los datos lo hace a través de este servicio. Esto desacopla la lógica de la aplicación de la complejidad de manejar tres conexiones diferentes, haciendo el código más limpio y mantenible.
+
+### 3. `Program.cs` y `appsettings.json` (Configuración e Inicio)
+- **`appsettings.json`:** Es el panel de control externo de la aplicación. Contiene las "direcciones" (cadenas de conexión) de todas las bases de datos. Un cambio aquí puede redirigir toda la aplicación a diferentes servidores de bases de datos sin tocar una sola línea de código C#. Es imprescindible para la configuración en diferentes entornos (desarrollo, producción).
+- **`Program.cs`:** Es el punto de entrada de la aplicación. Aquí se "enciende" todo: se configuran los servicios web, se leen los ajustes de `appsettings.json`, y, lo más importante, se registra el `DatabaseService` en el contenedor de inyección de dependencias.
+
+### 4. Modelos de Datos (`Models/*.cs`)
+Son el vocabulario de la aplicación. Definen la estructura de los datos. Son clave porque:
+- **`Usuario.cs`** e **`Inventario.cs`** contienen atributos `[Bson...]` que los vinculan directamente a cómo se almacenan en MongoDB.
+- **`HistorialPapeleta.cs`** está diseñado para ser compatible con Cassandra, notablemente al aplanar datos complejos (la lista de materiales) en una sola cadena JSON (`MaterialesJson`), una adaptación clave para la estructura de esa base de datos.
+
+### 5. Lógica de Autenticación (`Pages/Login/Login.cshtml.cs`)
+Este es el guardián de la aplicación. Es una función imprescindible que:
+1.  Recibe las credenciales del usuario.
+2.  Utiliza el `DatabaseService` para consultar la colección de `usuarios` en MongoDB.
+3.  Valida si el usuario y la contraseña son correctos.
+4.  Crea una sesión (probablemente usando Redis) para mantener al usuario conectado.
+5.  Redirige al usuario a su panel de control correspondiente según su rol.
+
+### 6. Lógica de Negocio Principal (`Pages/Student/NuevaPapeleta/Index.cshtml.cs`)
+Representa una de las funciones de negocio más importantes: la creación de una solicitud de material. Este archivo contiene la lógica que toma los datos del formulario, valida la información y la inserta en la colección `papeletas` de MongoDB a través del `DatabaseService`. Es un ejemplo perfecto de cómo la interfaz de usuario se conecta con la capa de datos.
